@@ -1,0 +1,26 @@
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
+scoop install php
+scoop install composer
+
+php --version
+composer --version
+
+code C:\Users\hugopq\scoop\apps\php\current\php.ini
+
+Copy-Item C:\Users\hugop\scoop\apps\php\current\php.ini-development C:\Users\hugop\scoop\apps\php\current\php.ini
+
+Procura estas linhas (usa Ctrl+F) e remove o ; do início para descomentar:
+
+extension=mbstring
+extension=openssl
+extension=pdo_mysql
+extension=fileinfo
+extension=curl
+extension=gd
+extension=zip
+extension=intl
+extension=sodium
