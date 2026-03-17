@@ -8,10 +8,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ApplicationIcon>..\hpdev.ico</ApplicationIcon>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Content Include="..\hpdev.ico" Link="hpdev.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="..\hpdev.ico" LogicalName="hpdev.ico" />
   </ItemGroup>
 
 </Project>

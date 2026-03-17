@@ -1,4 +1,5 @@
 .claude/
+publish/
 ServerManager/bin/
 ServerManager/obj/
 *.user

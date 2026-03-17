@@ -38,6 +38,33 @@ static class DockerHelper
     public static Task StartAllAsync() => RunComposeAsync("up -d");
     public static Task StopAllAsync()  => RunComposeAsync("stop");
 
+    public static async Task<string> RunBackupAsync()
+    {
+        var fileName = $"backup_{DateTime.Now:yyyyMMdd_HHmmss}.sql";
+        var filePath = Path.Combine(ComposePath, fileName);
+
+        var psi = new ProcessStartInfo("docker", "exec mysql_central mysqldump -u root -proot --all-databases")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError  = true,
+            UseShellExecute        = false,
+            CreateNoWindow         = true
+        };
+
+        using var p = Process.Start(psi)!;
+        var output = await p.StandardOutput.ReadToEndAsync();
+        await p.WaitForExitAsync();
+
+        if (p.ExitCode != 0)
+        {
+            var err = await p.StandardError.ReadToEndAsync();
+            throw new Exception(err);
+        }
+
+        await File.WriteAllTextAsync(filePath, output);
+        return filePath;
+    }
+
     public static Task StartServiceAsync(string service)
     {
         var svcName = Services.First(s => s.Service == service).Service.ToLower();

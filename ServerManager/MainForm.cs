@@ -10,18 +10,18 @@ public class MainForm : Form
     public MainForm()
     {
         Text            = "hpDevServer Manager";
-        Size            = new Size(580, 380);
-        MinimumSize     = new Size(580, 380);
-        MaximumSize     = new Size(580, 380);
+        Size            = new Size(580, 400);
+        MinimumSize     = new Size(580, 400);
+        MaximumSize     = new Size(580, 400);
         StartPosition   = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox     = false;
         BackColor       = Color.FromArgb(240, 240, 245);
         ForeColor       = Color.FromArgb(30, 30, 30);
 
-        var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hpdev.ico");
-        if (File.Exists(iconPath))
-            Icon = new Icon(iconPath);
+        using var stream = typeof(MainForm).Assembly.GetManifestResourceStream("hpdev.ico");
+        if (stream != null)
+            Icon = new Icon(stream);
 
         BuildUI();
 
@@ -42,15 +42,15 @@ public class MainForm : Form
             ColumnCount = 4,
             BackColor   = Color.Transparent,
         };
-        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
+        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42));
         outer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
         outer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
 
         // Header row
         outer.Controls.Add(MakeLabel("Serviço",  Color.FromArgb(100, 100, 110), bold: true), 0, 0);
         outer.Controls.Add(MakeLabel("Estado",   Color.FromArgb(100, 100, 110), bold: true), 1, 0);
-        outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+        outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
 
         // Service rows
         for (int i = 0; i < DockerHelper.Services.Length; i++)
@@ -83,7 +83,7 @@ public class MainForm : Form
             outer.Controls.Add(statusLbl, 1, i + 1);
             outer.Controls.Add(startBtn,  2, i + 1);
             outer.Controls.Add(stopBtn,   3, i + 1);
-            outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
+            outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
         }
 
         // Bottom action bar
@@ -97,6 +97,7 @@ public class MainForm : Form
 
         var startAll = MakeButton("Start All", Color.FromArgb(45, 140, 45), width: 90);
         var stopAll  = MakeButton("Stop All",  Color.FromArgb(160, 45, 45), width: 90);
+        var backup   = MakeButton("Backup DB", Color.FromArgb(30, 100, 180), width: 90);
         var phpLink  = new LinkLabel
         {
             Text      = "Abrir phpMyAdmin",
@@ -120,10 +121,31 @@ public class MainForm : Form
             await RefreshAsync();
             startAll.Enabled = stopAll.Enabled = true;
         };
+        backup.Click += async (s, e) =>
+        {
+            backup.Enabled = false;
+            backup.Text = "A fazer...";
+            try
+            {
+                var filePath = await DockerHelper.RunBackupAsync();
+                MessageBox.Show($"Backup guardado em:\n{filePath}", "Backup concluído",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao fazer backup:\n{ex.Message}", "Erro",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                backup.Enabled = true;
+                backup.Text = "Backup DB";
+            }
+        };
         phpLink.Click += (s, e) =>
             Process.Start(new ProcessStartInfo("http://localhost:8080") { UseShellExecute = true });
 
-        bar.Controls.AddRange([startAll, stopAll, phpLink]);
+        bar.Controls.AddRange([startAll, stopAll, backup, phpLink]);
 
         int lastRow = DockerHelper.Services.Length + 1;
         outer.Controls.Add(bar, 0, lastRow);
@@ -163,7 +185,7 @@ public class MainForm : Form
     {
         Text      = text,
         ForeColor = color,
-        Font      = new Font("Segoe UI", 9.5f, bold ? FontStyle.Bold : FontStyle.Regular),
+        Font      = new Font("Segoe UI", bold ? 11f : 9.5f, bold ? FontStyle.Bold : FontStyle.Regular),
         Dock      = DockStyle.Fill,
         BackColor = Color.Transparent,
         TextAlign = ContentAlignment.MiddleLeft,
@@ -173,7 +195,7 @@ public class MainForm : Form
     {
         Text      = text,
         Width     = width,
-        Height    = 36,
+        Height    = 42,
         BackColor = back,
         ForeColor = Color.White,
         FlatStyle = FlatStyle.Flat,

@@ -70,12 +70,11 @@ class TrayApplicationContext : ApplicationContext
 
     private static Icon CreateIcon(Color statusColor)
     {
-        var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hpdev.ico");
-
         Bitmap bmp;
-        if (File.Exists(iconPath))
+        using var stream = typeof(Program).Assembly.GetManifestResourceStream("hpdev.ico");
+        if (stream != null)
         {
-            using var baseIcon = new Icon(iconPath, 16, 16);
+            using var baseIcon = new Icon(stream, 16, 16);
             bmp = baseIcon.ToBitmap();
         }
         else
