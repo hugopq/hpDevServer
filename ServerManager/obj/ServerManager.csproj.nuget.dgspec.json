@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj": {}
+    "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj": {}
   },
   "projects": {
-    "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj": {
+    "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
+        "projectUniqueName": "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
         "projectName": "ServerManager",
-        "projectPath": "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
+        "projectPath": "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
         "packagesPath": "C:\\Users\\hugop\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\obj\\",
+        "outputPath": "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\hugop\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -68,13 +68,29 @@ class TrayApplicationContext : ApplicationContext
         _mainForm?.RefreshStatuses(statuses);
     }
 
-    private static Icon CreateIcon(Color color)
+    private static Icon CreateIcon(Color statusColor)
     {
-        var bmp = new Bitmap(16, 16);
+        var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hpdev.ico");
+
+        Bitmap bmp;
+        if (File.Exists(iconPath))
+        {
+            using var baseIcon = new Icon(iconPath, 16, 16);
+            bmp = baseIcon.ToBitmap();
+        }
+        else
+        {
+            bmp = new Bitmap(16, 16);
+            using var gFallback = Graphics.FromImage(bmp);
+            gFallback.Clear(Color.Transparent);
+        }
+
         using var g = Graphics.FromImage(bmp);
-        g.Clear(Color.Transparent);
-        using var brush = new SolidBrush(color);
-        g.FillEllipse(brush, 1, 1, 13, 13);
+        using var fill   = new SolidBrush(statusColor);
+        using var border = new SolidBrush(Color.FromArgb(50, 0, 0, 0));
+        g.FillEllipse(fill,   9, 9, 6, 6);
+        g.FillEllipse(border, 9, 9, 6, 6);
+
         return Icon.FromHandle(bmp.GetHicon());
     }
 }

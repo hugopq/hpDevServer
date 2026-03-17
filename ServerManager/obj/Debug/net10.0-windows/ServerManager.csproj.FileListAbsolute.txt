@@ -1,3 +1,4 @@
+c:\Users\hugop\Documents\hpDevServer\ServerManager\bin\Debug\net10.0-windows\hpdev.ico
 c:\Users\hugop\Documents\hpDevServer\ServerManager\bin\Debug\net10.0-windows\ServerManager.exe
 c:\Users\hugop\Documents\hpDevServer\ServerManager\bin\Debug\net10.0-windows\ServerManager.deps.json
 c:\Users\hugop\Documents\hpDevServer\ServerManager\bin\Debug\net10.0-windows\ServerManager.runtimeconfig.json

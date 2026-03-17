@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
+      "projectUniqueName": "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
       "projectName": "ServerManager",
-      "projectPath": "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
+      "projectPath": "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\ServerManager.csproj",
       "packagesPath": "C:\\Users\\hugop\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\obj\\",
+      "outputPath": "c:\\Users\\hugop\\Documents\\hpDevServer\\ServerManager\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\hugop\\AppData\\Roaming\\NuGet\\NuGet.Config"

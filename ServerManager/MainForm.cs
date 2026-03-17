@@ -10,14 +10,18 @@ public class MainForm : Form
     public MainForm()
     {
         Text            = "hpDevServer Manager";
-        Size            = new Size(500, 300);
-        MinimumSize     = new Size(500, 300);
-        MaximumSize     = new Size(500, 300);
+        Size            = new Size(580, 380);
+        MinimumSize     = new Size(580, 380);
+        MaximumSize     = new Size(580, 380);
         StartPosition   = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox     = false;
         BackColor       = Color.FromArgb(240, 240, 245);
         ForeColor       = Color.FromArgb(30, 30, 30);
+
+        var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hpdev.ico");
+        if (File.Exists(iconPath))
+            Icon = new Icon(iconPath);
 
         BuildUI();
 
@@ -38,10 +42,10 @@ public class MainForm : Form
             ColumnCount = 4,
             BackColor   = Color.Transparent,
         };
-        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32));
-        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
-        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70));
-        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70));
+        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
+        outer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
 
         // Header row
         outer.Controls.Add(MakeLabel("Serviço",  Color.FromArgb(100, 100, 110), bold: true), 0, 0);
@@ -79,7 +83,7 @@ public class MainForm : Form
             outer.Controls.Add(statusLbl, 1, i + 1);
             outer.Controls.Add(startBtn,  2, i + 1);
             outer.Controls.Add(stopBtn,   3, i + 1);
-            outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
+            outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
         }
 
         // Bottom action bar
@@ -165,11 +169,11 @@ public class MainForm : Form
         TextAlign = ContentAlignment.MiddleLeft,
     };
 
-    private static Button MakeButton(string text, Color back, int width = 62) => new()
+    private static Button MakeButton(string text, Color back, int width = 80) => new()
     {
         Text      = text,
         Width     = width,
-        Height    = 28,
+        Height    = 36,
         BackColor = back,
         ForeColor = Color.White,
         FlatStyle = FlatStyle.Flat,
