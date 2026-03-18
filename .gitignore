@@ -1,4 +1,5 @@
 .claude/
+installer/*.exe
 publish/
 ServerManager/bin/
 ServerManager/obj/
