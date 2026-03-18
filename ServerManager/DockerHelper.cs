@@ -35,8 +35,20 @@ static class DockerHelper
             s => output.Contains(s.Container));
     }
 
-    public static Task StartAllAsync() => RunComposeAsync("up -d");
-    public static Task StopAllAsync()  => RunComposeAsync("stop");
+    public static Task StartAllAsync(Action<string> onOutput) => RunComposeStreamAsync("up -d", onOutput);
+    public static Task StopAllAsync(Action<string> onOutput)  => RunComposeStreamAsync("stop", onOutput);
+
+    public static Task StartServiceAsync(string service, Action<string> onOutput)
+    {
+        var svcName = Services.First(s => s.Service == service).Service.ToLower();
+        return RunComposeStreamAsync($"up -d {svcName}", onOutput);
+    }
+
+    public static Task StopServiceAsync(string service, Action<string> onOutput)
+    {
+        var svcName = Services.First(s => s.Service == service).Service.ToLower();
+        return RunComposeStreamAsync($"stop {svcName}", onOutput);
+    }
 
     public static async Task<string> RunBackupAsync()
     {
@@ -65,22 +77,30 @@ static class DockerHelper
         return filePath;
     }
 
-    public static Task StartServiceAsync(string service)
-    {
-        var svcName = Services.First(s => s.Service == service).Service.ToLower();
-        return RunComposeAsync($"up -d {svcName}");
-    }
-
-    public static Task StopServiceAsync(string service)
-    {
-        var svcName = Services.First(s => s.Service == service).Service.ToLower();
-        return RunComposeAsync($"stop {svcName}");
-    }
-
-    private static Task RunComposeAsync(string args)
+    private static Task RunComposeStreamAsync(string args, Action<string> onOutput)
     {
         var file = Path.Combine(ComposePath, "docker-compose.yml");
-        return RunAsync("docker", $"compose -f \"{file}\" {args}");
+        return RunStreamAsync("docker", $"compose -f \"{file}\" {args}", onOutput);
+    }
+
+    public static async Task RunStreamAsync(string exe, string args, Action<string> onOutput)
+    {
+        var psi = new ProcessStartInfo(exe, args)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError  = true,
+            UseShellExecute        = false,
+            CreateNoWindow         = true
+        };
+
+        using var p = Process.Start(psi)!;
+
+        p.OutputDataReceived += (_, e) => { if (e.Data != null) onOutput(e.Data); };
+        p.ErrorDataReceived  += (_, e) => { if (e.Data != null) onOutput(e.Data); };
+        p.BeginOutputReadLine();
+        p.BeginErrorReadLine();
+
+        await p.WaitForExitAsync();
     }
 
     public static async Task<string> RunAsync(string exe, string args)

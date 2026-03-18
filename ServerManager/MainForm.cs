@@ -6,13 +6,14 @@ public class MainForm : Form
 {
     private readonly Dictionary<string, (Label Status, Button Start, Button Stop)> _rows = [];
     private readonly System.Windows.Forms.Timer _timer;
+    private RichTextBox _log = null!;
 
     public MainForm()
     {
         Text            = "hpDevServer Manager";
-        Size            = new Size(580, 400);
-        MinimumSize     = new Size(580, 400);
-        MaximumSize     = new Size(580, 400);
+        Size            = new Size(580, 530);
+        MinimumSize     = new Size(580, 530);
+        MaximumSize     = new Size(580, 530);
         StartPosition   = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox     = false;
@@ -38,7 +39,7 @@ public class MainForm : Form
         {
             Dock        = DockStyle.Fill,
             Padding     = new Padding(16, 12, 16, 12),
-            RowCount    = DockerHelper.Services.Length + 2,
+            RowCount    = DockerHelper.Services.Length + 3, // header + services + log + bar
             ColumnCount = 4,
             BackColor   = Color.Transparent,
         };
@@ -48,8 +49,8 @@ public class MainForm : Form
         outer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
 
         // Header row
-        outer.Controls.Add(MakeLabel("Serviço",  Color.FromArgb(100, 100, 110), bold: true), 0, 0);
-        outer.Controls.Add(MakeLabel("Estado",   Color.FromArgb(100, 100, 110), bold: true), 1, 0);
+        outer.Controls.Add(MakeLabel("Serviço", Color.FromArgb(100, 100, 110), bold: true), 0, 0);
+        outer.Controls.Add(MakeLabel("Estado",  Color.FromArgb(100, 100, 110), bold: true), 1, 0);
         outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
 
         // Service rows
@@ -61,18 +62,22 @@ public class MainForm : Form
             var startBtn  = MakeButton("Start", Color.FromArgb(45, 140, 45));
             var stopBtn   = MakeButton("Stop",  Color.FromArgb(160, 45, 45));
 
-            var svc = svcDisplay; // capture
+            var svc = svcDisplay;
             startBtn.Click += async (s, e) =>
             {
                 SetRow(svc, enabled: false);
-                await DockerHelper.StartServiceAsync(svc);
+                SetStatus(svc, "A iniciar...", Color.Goldenrod);
+                AppendLog($"[{svc}] A iniciar...");
+                await DockerHelper.StartServiceAsync(svc, line => AppendLog(line));
                 await RefreshAsync();
                 SetRow(svc, enabled: true);
             };
             stopBtn.Click += async (s, e) =>
             {
                 SetRow(svc, enabled: false);
-                await DockerHelper.StopServiceAsync(svc);
+                SetStatus(svc, "A parar...", Color.Goldenrod);
+                AppendLog($"[{svc}] A parar...");
+                await DockerHelper.StopServiceAsync(svc, line => AppendLog(line));
                 await RefreshAsync();
                 SetRow(svc, enabled: true);
             };
@@ -85,6 +90,23 @@ public class MainForm : Form
             outer.Controls.Add(stopBtn,   3, i + 1);
             outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
         }
+
+        // Log panel
+        _log = new RichTextBox
+        {
+            Dock          = DockStyle.Fill,
+            BackColor     = Color.FromArgb(30, 30, 35),
+            ForeColor     = Color.FromArgb(200, 200, 200),
+            Font          = new Font("Consolas", 8f),
+            ReadOnly      = true,
+            BorderStyle   = BorderStyle.None,
+            ScrollBars    = RichTextBoxScrollBars.Vertical,
+            Margin        = new Padding(0, 6, 0, 4),
+        };
+        int logRow = DockerHelper.Services.Length + 1;
+        outer.Controls.Add(_log, 0, logRow);
+        outer.SetColumnSpan(_log, 4);
+        outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 120));
 
         // Bottom action bar
         var bar = new FlowLayoutPanel
@@ -110,14 +132,18 @@ public class MainForm : Form
         startAll.Click += async (s, e) =>
         {
             startAll.Enabled = stopAll.Enabled = false;
-            await DockerHelper.StartAllAsync();
+            SetAllStatuses("A iniciar...", Color.Goldenrod);
+            AppendLog("--- Start All ---");
+            await DockerHelper.StartAllAsync(line => AppendLog(line));
             await RefreshAsync();
             startAll.Enabled = stopAll.Enabled = true;
         };
         stopAll.Click += async (s, e) =>
         {
             startAll.Enabled = stopAll.Enabled = false;
-            await DockerHelper.StopAllAsync();
+            SetAllStatuses("A parar...", Color.Goldenrod);
+            AppendLog("--- Stop All ---");
+            await DockerHelper.StopAllAsync(line => AppendLog(line));
             await RefreshAsync();
             startAll.Enabled = stopAll.Enabled = true;
         };
@@ -125,14 +151,17 @@ public class MainForm : Form
         {
             backup.Enabled = false;
             backup.Text = "A fazer...";
+            AppendLog("--- Backup iniciado ---");
             try
             {
                 var filePath = await DockerHelper.RunBackupAsync();
+                AppendLog($"Backup guardado: {filePath}");
                 MessageBox.Show($"Backup guardado em:\n{filePath}", "Backup concluído",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
+                AppendLog($"Erro no backup: {ex.Message}");
                 MessageBox.Show($"Erro ao fazer backup:\n{ex.Message}", "Erro",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -147,7 +176,7 @@ public class MainForm : Form
 
         bar.Controls.AddRange([startAll, stopAll, backup, phpLink]);
 
-        int lastRow = DockerHelper.Services.Length + 1;
+        int lastRow = DockerHelper.Services.Length + 2;
         outer.Controls.Add(bar, 0, lastRow);
         outer.SetColumnSpan(bar, 4);
         outer.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -172,6 +201,30 @@ public class MainForm : Form
             row.Status.Text      = running ? "A correr" : "Parado";
             row.Status.ForeColor = running ? Color.LimeGreen : Color.IndianRed;
         }
+    }
+
+    private void AppendLog(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message)) return;
+        if (_log.IsDisposed) return;
+        if (_log.InvokeRequired) { _log.Invoke(() => AppendLog(message)); return; }
+
+        _log.AppendText(message + "\n");
+        _log.ScrollToCaret();
+    }
+
+    private void SetStatus(string svc, string text, Color color)
+    {
+        if (!_rows.TryGetValue(svc, out var row)) return;
+        if (InvokeRequired) { Invoke(() => SetStatus(svc, text, color)); return; }
+        row.Status.Text      = text;
+        row.Status.ForeColor = color;
+    }
+
+    private void SetAllStatuses(string text, Color color)
+    {
+        foreach (var svc in _rows.Keys)
+            SetStatus(svc, text, color);
     }
 
     private void SetRow(string svc, bool enabled)

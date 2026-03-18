@@ -39,8 +39,8 @@ class TrayApplicationContext : ApplicationContext
         var menu = new ContextMenuStrip();
         menu.Items.Add("Abrir", null, (s, e) => ShowMainForm());
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Start All", null, async (s, e) => await DockerHelper.StartAllAsync());
-        menu.Items.Add("Stop All", null, async (s, e) => await DockerHelper.StopAllAsync());
+        menu.Items.Add("Start All", null, async (s, e) => await DockerHelper.StartAllAsync(_ => { }));
+        menu.Items.Add("Stop All", null, async (s, e) => await DockerHelper.StopAllAsync(_ => { }));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Sair", null, (s, e) => { _trayIcon.Visible = false; Application.Exit(); });
         return menu;
