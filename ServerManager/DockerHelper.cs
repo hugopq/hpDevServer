@@ -35,13 +35,73 @@ static class DockerHelper
             s => output.Contains(s.Container));
     }
 
-    public static Task StartAllAsync(Action<string> onOutput) => RunComposeStreamAsync("up -d", onOutput);
-    public static Task StopAllAsync(Action<string> onOutput)  => RunComposeStreamAsync("stop", onOutput);
-
-    public static Task StartServiceAsync(string service, Action<string> onOutput)
+    public static async Task StartAllAsync(Action<string> onOutput)
     {
+        await EnsureDockerRunningAsync(onOutput);
+        await RunComposeStreamAsync("up -d", onOutput);
+    }
+
+    public static Task StopAllAsync(Action<string> onOutput) => RunComposeStreamAsync("stop", onOutput);
+
+    public static async Task StartServiceAsync(string service, Action<string> onOutput)
+    {
+        await EnsureDockerRunningAsync(onOutput);
         var svcName = Services.First(s => s.Service == service).Service.ToLower();
-        return RunComposeStreamAsync($"up -d {svcName}", onOutput);
+        await RunComposeStreamAsync($"up -d {svcName}", onOutput);
+    }
+
+    public static async Task EnsureDockerRunningAsync(Action<string> onOutput)
+    {
+        if (await IsDockerRunningAsync()) return;
+
+        onOutput("Docker não está a correr. A tentar iniciar o Docker Desktop...");
+
+        var dockerExe =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                         @"Programs\Docker\Docker\Docker Desktop.exe");
+
+        if (!File.Exists(dockerExe))
+            dockerExe = @"C:\Program Files\Docker\Docker\Docker Desktop.exe";
+
+        if (!File.Exists(dockerExe))
+        {
+            onOutput("Docker Desktop não encontrado. Verifica se está instalado.");
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo(dockerExe) { UseShellExecute = true });
+
+        // Aguarda até o Docker estar pronto (máx. 60 segundos)
+        for (int i = 0; i < 30; i++)
+        {
+            await Task.Delay(2000);
+            if (await IsDockerRunningAsync())
+            {
+                onOutput("Docker Desktop iniciado.");
+                return;
+            }
+            onOutput($"A aguardar Docker Desktop... ({(i + 1) * 2}s)");
+        }
+
+        onOutput("Tempo esgotado a aguardar pelo Docker Desktop.");
+    }
+
+    private static async Task<bool> IsDockerRunningAsync()
+    {
+        try
+        {
+            var psi = new ProcessStartInfo("docker", "ps")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError  = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true
+            };
+            using var p = Process.Start(psi)!;
+            await p.WaitForExitAsync();
+            return p.ExitCode == 0;
+        }
+        catch { return false; }
     }
 
     public static Task StopServiceAsync(string service, Action<string> onOutput)

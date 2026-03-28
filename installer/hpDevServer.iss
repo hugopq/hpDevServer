@@ -1,5 +1,5 @@
 #define AppName "hpDevServer"
-#define AppVersion "1.1"
+#define AppVersion "1.2"
 #define AppPublisher "Hugo Perdigão"
 #define AppExeName "ServerManager.exe"
 
